@@ -1,3 +1,7 @@
 node_modules/
 
 ecosystem.config.js
+.prettierrc.json
+
+# Database configuration file
+lib/db.js
