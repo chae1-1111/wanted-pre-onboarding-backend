@@ -2,7 +2,11 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const logger = require("morgan");
 const { joinUser, loginUser } = require("./controller/memberCont");
-const { createPost, getPostList } = require("./controller/boardCont");
+const {
+    createPost,
+    getPostList,
+    getOnePost,
+} = require("./controller/boardCont");
 const jwt = require("jsonwebtoken");
 
 const app = express();
@@ -77,6 +81,21 @@ router.route("/board").get((req, res) => {
         if (err) return res.status(404).json({ message: "Unexpected Error" });
 
         return res.status(200).json({ posts: result });
+    });
+});
+
+// 게시글 상세 조회
+// GET /board/:_id
+router.route("/board/:_id").get((req, res) => {
+    const _id = req.params._id;
+
+    getOnePost(_id, (err, result) => {
+        if (err) return res.status(404).json({ message: "Unexpected Error" });
+
+        if (result.length === 0)
+            return res.status(404).json({ message: "The Post doesn't exist" });
+
+        return res.status(200).json({ post: result[0] });
     });
 });
 
