@@ -2,6 +2,8 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const logger = require("morgan");
 const { joinUser, loginUser } = require("./controller/memberCont");
+const { createPost } = require("./controller/boardCont");
+const jwt = require("jsonwebtoken");
 
 const app = express();
 const port = 3000;
@@ -18,7 +20,7 @@ router.route("/").get((req, res) => {
 });
 
 // 회원가입
-// POST /user
+// POST /user/signup
 router.route("/user/signup").post(async (req, res) => {
     try {
         const result = await joinUser(req.body.email, req.body.password);
@@ -35,7 +37,7 @@ router.route("/user/signup").post(async (req, res) => {
 });
 
 // 로그인
-// GET /user
+// POST /user/signin
 router.route("/user/signin").post(async (req, res) => {
     loginUser(req.body.email, req.body.password, (err, result) => {
         if (err) return res.status(404).json({ message: "Unexpected Error" });
@@ -47,6 +49,44 @@ router.route("/user/signin").post(async (req, res) => {
         }
     });
 });
+
+// 게시글 작성
+// POST /board
+router.route("/board").post((req, res) => {
+    verifyToken(req, (err, result) => {
+        if (err)
+            return res.status(401).json({ message: "Authentication Failed" });
+
+        const { title, description } = req.body;
+
+        createPost(title, description, result._id, (err, result) => {
+            if (err)
+                return res.status(404).json({ message: "Unexpected Error" });
+
+            return res.status(201).json();
+        });
+    });
+});
+
+const verifyToken = (req, callback) => {
+    const auth = req.headers.authorization;
+
+    if (!auth) {
+        const err = new Error("Authentication Failed");
+        callback(err);
+    } else {
+        const token = auth.includes("Bearer ")
+            ? auth.split("Bearer ")[1]
+            : auth;
+
+        try {
+            const result = jwt.verify(token, process.env.JWT_SECRET_KEY);
+            callback(null, result);
+        } catch (err) {
+            callback(err);
+        }
+    }
+};
 
 app.use("/", router);
 
