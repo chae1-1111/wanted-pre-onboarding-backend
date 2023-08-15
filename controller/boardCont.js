@@ -30,3 +30,14 @@ module.exports.getPostList = (page, callback) => {
         callback(null, { result: true, data: result });
     });
 };
+
+module.exports.getOnePost = (_id, callback) => {
+    sql =
+        "SELECT b.title, b.description, b.created_at, u.email FROM board b INNER JOIN user u ON b.author_id = u._id WHERE b._id = ?";
+
+    db.query(sql, [_id], (err, result) => {
+        if (err) callback(err);
+
+        callback(null, result);
+    });
+};
