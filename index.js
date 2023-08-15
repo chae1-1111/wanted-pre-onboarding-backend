@@ -6,6 +6,7 @@ const {
     createPost,
     getPostList,
     getOnePost,
+    modifyPost,
 } = require("./controller/boardCont");
 const jwt = require("jsonwebtoken");
 
@@ -93,9 +94,37 @@ router.route("/board/:_id").get((req, res) => {
         if (err) return res.status(404).json({ message: "Unexpected Error" });
 
         if (result.length === 0)
-            return res.status(404).json({ message: "The Post doesn't exist" });
+            return res.status(404).json({ message: "Post doesn't exist" });
 
         return res.status(200).json({ post: result[0] });
+    });
+});
+
+// 게시글 수정
+// PATCH /board/:_id
+router.route("/board/:_id").patch((req, res) => {
+    verifyToken(req, (err, result) => {
+        if (err)
+            return res.status(401).json({ message: "Authentication Failed" });
+
+        const _id = req.params._id;
+        const postData = {};
+        if (req.body.title) postData.title = req.body.title;
+        if (req.body.description) postData.description = req.body.description;
+        console.log(postData);
+        const authorId = result._id;
+
+        modifyPost(_id, postData, authorId, (err, result) => {
+            if (err)
+                return res.status(404).json({ message: "Unexpected Error" });
+
+            if (result.result !== 201) {
+                return res
+                    .status(result.result)
+                    .json({ message: result.message });
+            }
+            return res.status(201).json({});
+        });
     });
 });
 
