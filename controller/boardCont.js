@@ -2,7 +2,7 @@ const db = require("../lib/db");
 require("dotenv").config();
 
 module.exports.createPost = (title, description, authorId, callback) => {
-    sql = "INSERT into board set ?";
+    let sql = "INSERT into board set ?";
 
     newPost = {
         title: title,
@@ -18,7 +18,7 @@ module.exports.createPost = (title, description, authorId, callback) => {
 };
 
 module.exports.getPostList = (page, callback) => {
-    sql =
+    let sql =
         "SELECT b.title, b.created_at, u.email FROM board b INNER JOIN user u ON b.author_id = u._id ORDER BY b.created_at DESC LIMIT ?, ?";
 
     const postsPerPage = parseInt(process.env.POSTS_PER_PAGE); //10
@@ -32,12 +32,44 @@ module.exports.getPostList = (page, callback) => {
 };
 
 module.exports.getOnePost = (_id, callback) => {
-    sql =
+    let sql =
         "SELECT b.title, b.description, b.created_at, u.email FROM board b INNER JOIN user u ON b.author_id = u._id WHERE b._id = ?";
 
     db.query(sql, [_id], (err, result) => {
         if (err) callback(err);
 
         callback(null, result);
+    });
+};
+
+module.exports.modifyPost = (_id, postData, authorId, callback) => {
+    let sql = "SELECT author_id FROM board WHERE _id = ?";
+
+    db.query(sql, [_id], (err, result) => {
+        if (err) callback(err);
+
+        if (result.length === 0) {
+            callback(null, { result: 404, message: "Post doesn't exist" });
+        } else {
+            if (result[0].author_id != authorId) {
+                callback(null, {
+                    result: 401,
+                    message: "Authentication Failed",
+                });
+            } else {
+                sql = "UPDATE board SET ? WHERE _id = ? AND author_id = ?";
+                values = [postData, _id, authorId];
+
+                db.query(sql, values, (err_, result_) => {
+                    if (err_) callback(err_);
+
+                    console.log(result_);
+
+                    if (result_.affectedRows === 1) {
+                        callback(null, { result: 201 });
+                    }
+                });
+            }
+        }
     });
 };
