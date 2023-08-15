@@ -2,7 +2,7 @@ const express = require("express");
 const bodyParser = require("body-parser");
 const logger = require("morgan");
 const { joinUser, loginUser } = require("./controller/memberCont");
-const { createPost } = require("./controller/boardCont");
+const { createPost, getPostList } = require("./controller/boardCont");
 const jwt = require("jsonwebtoken");
 
 const app = express();
@@ -65,6 +65,18 @@ router.route("/board").post((req, res) => {
 
             return res.status(201).json();
         });
+    });
+});
+
+// 게시글 목록 조회
+// GET /board
+router.route("/board").get((req, res) => {
+    const page = req.query.page;
+
+    getPostList(page, (err, result) => {
+        if (err) return res.status(404).json({ message: "Unexpected Error" });
+
+        return res.status(200).json({ posts: result });
     });
 });
 
