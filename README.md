@@ -4,6 +4,28 @@
 임채원
 
 ## 애플리케이션 실행 방법 (엔드포인트)
+###### 1. root 경로에 .env 파일 생성
+```
+DB_HOST={mysql host}
+DB_USER={mysql 사용자명}
+DB_PASSWORD={mysql 패스워드}
+DB_DATABASE={사용할 Database 명}
+
+ENC_ITERATIONS={사용자 비밀번호 암호화 반복횟수(10만 이상 임의의 수)}
+
+JWT_ALGORITHM=HS256
+JWT_EXPIRATION={jwt 유효기간(1h, 30m, ...)}
+JWT_SECRET_KEY={jwt secret key}
+
+POSTS_PER_PAGE={글 목록 조회 시 1페이지 당 글 수(10)}
+```
+2. 터미널
+```
+npm install
+node index.js
+```
+
+
 1. 회원가입
    - POST /user/signup
 2. 로그인
