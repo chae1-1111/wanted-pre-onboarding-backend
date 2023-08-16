@@ -50,26 +50,55 @@ module.exports.modifyPost = (_id, postData, authorId, callback) => {
 
         if (result.length === 0) {
             callback(null, { result: 404, message: "Post doesn't exist" });
+        } else if (result[0].author_id != authorId) {
+            callback(null, {
+                result: 401,
+                message: "Authentication Failed",
+            });
         } else {
-            if (result[0].author_id != authorId) {
-                callback(null, {
-                    result: 401,
-                    message: "Authentication Failed",
-                });
-            } else {
-                sql = "UPDATE board SET ? WHERE _id = ? AND author_id = ?";
-                values = [postData, _id, authorId];
+            sql = "UPDATE board SET ? WHERE _id = ? AND author_id = ?";
+            values = [postData, _id, authorId];
 
-                db.query(sql, values, (err_, result_) => {
-                    if (err_) callback(err_);
+            db.query(sql, values, (err, result) => {
+                if (err) callback(err);
 
-                    console.log(result_);
+                console.log(result);
 
-                    if (result_.affectedRows === 1) {
-                        callback(null, { result: 201 });
-                    }
-                });
-            }
+                if (result.affectedRows === 1) {
+                    callback(null, { result: 201 });
+                } else {
+                    callback(new Error("Unexpected Error"));
+                }
+            });
+        }
+    });
+};
+
+module.exports.deletePost = (_id, authorId, callback) => {
+    let sql = "SELECT author_id FROM board WHERE _id = ?";
+
+    db.query(sql, [_id], (err, result) => {
+        if (err) callback(err);
+
+        if (result.length === 0) {
+            callback(null, { result: 404, message: "Post doesn't exist" });
+        } else if (result[0].author_id != authorId) {
+            callback(null, {
+                result: 401,
+                message: "Authentication Failed",
+            });
+        } else {
+            sql = "DELETE FROM board WHERE _id = ? AND author_id = ?";
+
+            db.query(sql, [_id, authorId], (err, result) => {
+                if (err) callback(err);
+
+                if (result.affectedRows === 1) {
+                    callback(null, { result: 201 });
+                } else {
+                    callback(new Error("Unexpected Error"));
+                }
+            });
         }
     });
 };

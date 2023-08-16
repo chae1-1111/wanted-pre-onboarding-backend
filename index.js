@@ -7,6 +7,7 @@ const {
     getPostList,
     getOnePost,
     modifyPost,
+    deletePost,
 } = require("./controller/boardCont");
 const jwt = require("jsonwebtoken");
 
@@ -115,6 +116,30 @@ router.route("/board/:_id").patch((req, res) => {
         const authorId = result._id;
 
         modifyPost(_id, postData, authorId, (err, result) => {
+            if (err)
+                return res.status(404).json({ message: "Unexpected Error" });
+
+            if (result.result !== 201) {
+                return res
+                    .status(result.result)
+                    .json({ message: result.message });
+            }
+            return res.status(201).json({});
+        });
+    });
+});
+
+// 게시글 삭제
+// DELETE /board/:_id
+router.route("/board/:_id").delete((req, res) => {
+    verifyToken(req, (err, result) => {
+        if (err)
+            return res.status(401).json({ message: "Authentication Failed" });
+
+        const _id = req.params._id;
+        const authorId = result._id;
+
+        deletePost(_id, authorId, (err, result) => {
             if (err)
                 return res.status(404).json({ message: "Unexpected Error" });
 
